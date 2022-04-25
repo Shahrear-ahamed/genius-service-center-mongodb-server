@@ -19,14 +19,14 @@ const client = new MongoClient(uri, {
 (async () => {
   try {
     await client.connect();
-    const serviceCullection = client.db("geniusCar").collection("service");
+    const serviceCollection = client.db("geniusCar").collection("service");
+    const orderCollection = client.db("geniusCar").collection("order");
 
     // get all data from database
     app.get("/service", async (req, res) => {
       const query = {};
-      const cursor = serviceCullection.find(query);
+      const cursor = serviceCollection.find(query);
       const service = await cursor.toArray();
-      console.log(service);
       res.send(service);
     });
 
@@ -34,14 +34,14 @@ const client = new MongoClient(uri, {
     app.get("/service/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const service = await serviceCullection.findOne(query);
+      const service = await serviceCollection.findOne(query);
       res.send(service);
     });
 
     // post data to database
     app.post("/service", async (req, res) => {
       const service = req.body;
-      const result = await serviceCullection.insertOne(service);
+      const result = await serviceCollection.insertOne(service);
       res.send(result);
     });
 
@@ -49,7 +49,31 @@ const client = new MongoClient(uri, {
     app.delete("/service/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const result = await serviceCullection.deleteOne(query);
+      const result = await serviceCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // total service
+    app.get("/totalservices", async (req, res) => {
+      const count = await serviceCollection.estimatedDocumentCount();
+      console.log(count);
+      res.send({ count });
+    });
+
+    // set order
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      console.log(order);
+      const result = await orderCollection.insertOne(order);
+      res.send(result);
+    });
+
+    // give order info to user
+    app.get("/order", async (req, res) => {
+      const email = req.query.email;
+      const query = { email };
+      const cursor = orderCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
